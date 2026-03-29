@@ -45,13 +45,16 @@ st.set_page_config(
 # ============================================================
 st.markdown("""
 <style>
-    .stMetric { background: linear-gradient(135deg, #1a1a2e, #16213e);
-                padding: 12px 16px; border-radius: 10px; border: 1px solid #333; }
-    .stMetric label { color: #aaa !important; font-size: 12px !important; }
-    .stMetric [data-testid="stMetricValue"] { color: #fff !important; }
-    div[data-testid="stExpander"] { border: 1px solid #333; border-radius: 8px; }
-    .source-tag { background: #2a2a3e; color: #8be9fd; padding: 2px 8px;
+    .stMetric { background: linear-gradient(135deg, #f0f2f6, #e8eaf0);
+                padding: 12px 16px; border-radius: 10px; border: 1px solid #ddd; }
+    .stMetric label { color: #555 !important; font-size: 12px !important; }
+    .stMetric [data-testid="stMetricValue"] { color: #1a1a2e !important; }
+    div[data-testid="stExpander"] { border: 1px solid #ddd; border-radius: 8px; }
+    .source-tag { background: #e8eaf0; color: #0066cc; padding: 2px 8px;
                   border-radius: 4px; font-size: 11px; font-family: monospace; }
+    .disclaimer { background: #fff3cd; color: #856404; padding: 10px 16px;
+                  border-radius: 8px; border: 1px solid #ffc107; font-size: 12px;
+                  margin-top: 8px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -345,6 +348,15 @@ else:
 st.title("👟 STEPN OG Economy Simulator v2")
 st.caption(f"GSTキャップ / GMTプール（Classic+Rainbow） / 虹靴対応 | "
            f"{sim_days}日間（{sim_years:.1f}年）シミュレーション")
+st.caption("Created by **shin-chan**")
+st.markdown(
+    '<div class="disclaimer">'
+    "⚠️ <b>免責事項</b>：本シミュレーターのパラメータはすべて仮の推定値であり、"
+    "実際のゲーム内経済を正確に反映するものではありません。"
+    "シミュレーション結果に基づくいかなる意思決定についても、作成者は一切の責任を負いません。"
+    "</div>",
+    unsafe_allow_html=True,
+)
 
 # --- KPIs ---
 col1, col2, col3, col4, col5, col6 = st.columns(6)
