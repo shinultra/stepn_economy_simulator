@@ -173,33 +173,79 @@ DAILY_GEM_UPGRADE_RATE = 0.003
 
 # --- ミステリーボックス (MB) 経済 ---
 # 出典: whitepaper.stepn.com/earning-module/mystery-box-system
-# 出典: ipaddressguide.org, blockchain-game.jp コミュニティデータ集約
-# MBレベル1-10: Luck×Energy で決定。開封コスト: Lv1=5GST, Lv2=10, Lv3=20, ...
+# 出典: stepn-market.guide/cheat-sheet, 黒ブタ(blackpigtail.com) MB開封データ
+# 出典: パレゾウ(@parezoparezo) MB中身データ, Otty(@OttySTEPNer1) MBチャート
+# 出典: kightblog.co.jp/cryptoassets/nft/stepn-mysterybox/
+# MBレベル1-10: Luck×Energy で品質決定。開封カウントダウン自動開始。
+# 開封ベースコスト (GST) — 待機時間完了後の最低開封費用
 MB_OPENING_COST_GST = {
-    1: 5, 2: 10, 3: 20, 4: 35, 5: 50,
-    6: 70, 7: 80, 8: 90, 9: 95, 10: 100,
+    1: 5, 2: 7, 3: 10, 4: 35, 5: 100,
+    6: 255, 7: 523, 8: 1024, 9: 1818, 10: 2699,
 }
-# MB内ジェムドロップ (出典: whitepaper): 35% Lv1, 50% Lv2, 14.5% Lv3, 0.5% Lv4
-MB_GEM_LEVEL_PROB = {1: 0.35, 2: 0.50, 3: 0.145, 4: 0.005}
+# 開封までの待機時間 (日) — この時間経過後にベースコストで開封可能
+MB_WAIT_DAYS = {
+    1: 2, 2: 3, 3: 4, 4: 5, 5: 8,
+    6: 10, 7: 12, 8: 14, 9: 16, 10: 18,
+}
+# MBドロップに必要な最低消費エナジー / 最低Luck目安
+# 出典: lollipopkz.xyz/stepn-mystery-box/, STEPNstatsコミュニティデータ
+MB_ENERGY_LUCK_REQ = {
+    # mb_level: (min_energy, min_luck)
+    1: (1, 0),      # 低エナジーでもドロップする
+    2: (2, 0),      # 低エナジーでもドロップする
+    3: (5, 15),     # 5E+, Luck15+ が目安
+    4: (5, 30),     # 5E+, Luck30+ (Lv1ジェム確定, Lv2ジェム35%)
+    5: (8, 60),     # 8E+, Luck60+ (Lv2ジェム100%)
+    6: (12, 100),   # 12E+, Luck100+
+    7: (20, 200),   # 20E+, Luck200+
+    8: (20, 400),   # 20E+, Luck400+
+    9: (20, 500),   # 20E+, Luck500+ (Lv3ジェム100%)
+    10: (20, 800),  # 20E+, 超高Luck (Lv4ジェム出る可能性あり)
+}
+# MB内ジェムドロップ確率 — MBレベル別に異なる
+# 出典: パレゾウ(@parezoparezo) コミュニティ開封データ集約
+# Lv5以上はLv2ジェム100%、Lv9以上はLv3ジェム100%
+MB_GEM_LEVEL_PROB = {
+    # mb_level: {gem_level: probability}
+    1: {1: 0.60, 2: 0.00, 3: 0.00, 4: 0.00},  # Lv1ジェムのみ (出ない場合も多い)
+    2: {1: 0.80, 2: 0.00, 3: 0.00, 4: 0.00},  # Lv1ジェムのみ
+    3: {1: 0.75, 2: 0.25, 3: 0.00, 4: 0.00},  # Lv2ジェム25%
+    4: {1: 0.60, 2: 0.35, 3: 0.05, 4: 0.00},  # Lv2ジェム35%
+    5: {1: 0.00, 2: 0.85, 3: 0.14, 4: 0.01},  # Lv2ジェム100%, Lv3も出る
+    6: {1: 0.00, 2: 0.65, 3: 0.30, 4: 0.05},  # Lv3ジェム割合UP
+    7: {1: 0.00, 2: 0.40, 3: 0.50, 4: 0.10},  # Lv3中心
+    8: {1: 0.00, 2: 0.20, 3: 0.60, 4: 0.20},  # Lv3-4中心
+    9: {1: 0.00, 2: 0.00, 3: 0.70, 4: 0.30},  # Lv3ジェム100%
+    10: {1: 0.00, 2: 0.00, 3: 0.50, 4: 0.50}, # Lv4ジェム高確率
+}
 # MBレベル別: 平均ジェム個数、平均スクロール個数
-# Lv1は空の場合あり、Lv2以上はほぼ確実にスクロール
+# 出典: 黒ブタ MB開封データ, コミュニティ報告集約
 MB_LOOT_TABLE = {
     # mb_level: (avg_gems, avg_scrolls)
-    # Lv1は高確率で空、Lv2もジェム出ないことが多い (コミュニティ報告集約)
-    1: (0.08, 0.15),   # ~90%空。まれにLv1ジェムやCommonスクロール
-    2: (0.25, 0.70),   # スクロール中心。ジェムは25%程度
-    3: (0.60, 1.00),   # ジェム1個が半数以上 + スクロール1枚
-    4: (1.20, 1.30),   # ジェム1-2個 + スクロール1枚
-    5: (2.00, 1.80),   # ジェム2個 + スクロール1-2枚
+    1: (0.10, 0.10),   # 大半が空。まれにLv1ジェムやCommonスクロール
+    2: (0.30, 0.50),   # スクロール中心。ジェムは30%程度
+    3: (0.80, 1.00),   # ジェム1個が多い + スクロール1枚
+    4: (1.20, 1.20),   # ジェム1-2個 + スクロール1枚
+    5: (2.00, 1.50),   # ジェム2個 + スクロール1-2枚
+    6: (2.50, 2.00),   # ジェム2-3個 + スクロール2枚
+    7: (3.00, 2.50),   # ジェム3個 + スクロール2-3枚
+    8: (4.00, 3.00),   # ジェム4個 + スクロール3枚
+    9: (5.00, 3.50),   # ジェム5個 + スクロール3-4枚
+    10: (6.00, 4.00),  # ジェム6個 + スクロール4枚
 }
 # MBレベル別スクロールレアリティ (主にドロップされるレアリティ)
-# Lv1-2: Common中心, Lv3: Common/Uncommon, Lv4+: mixed
+# MBのレアリティに対応: Lv1-2=Common, Lv3-4=Uncommon, Lv5-6=Rare, Lv7-8=Epic, Lv9-10=Legendary
 MB_SCROLL_RARITY = {
     1: {"Common": 1.0},
     2: {"Common": 0.95, "Uncommon": 0.05},
-    3: {"Common": 0.60, "Uncommon": 0.35, "Rare": 0.05},
-    4: {"Common": 0.30, "Uncommon": 0.45, "Rare": 0.20, "Epic": 0.05},
-    5: {"Common": 0.15, "Uncommon": 0.35, "Rare": 0.35, "Epic": 0.12, "Legendary": 0.03},
+    3: {"Common": 0.50, "Uncommon": 0.45, "Rare": 0.05},
+    4: {"Common": 0.25, "Uncommon": 0.50, "Rare": 0.20, "Epic": 0.05},
+    5: {"Common": 0.10, "Uncommon": 0.30, "Rare": 0.40, "Epic": 0.15, "Legendary": 0.05},
+    6: {"Common": 0.05, "Uncommon": 0.15, "Rare": 0.45, "Epic": 0.25, "Legendary": 0.10},
+    7: {"Common": 0.00, "Uncommon": 0.10, "Rare": 0.30, "Epic": 0.40, "Legendary": 0.20},
+    8: {"Common": 0.00, "Uncommon": 0.05, "Rare": 0.20, "Epic": 0.45, "Legendary": 0.30},
+    9: {"Common": 0.00, "Uncommon": 0.00, "Rare": 0.10, "Epic": 0.40, "Legendary": 0.50},
+    10: {"Common": 0.00, "Uncommon": 0.00, "Rare": 0.05, "Epic": 0.30, "Legendary": 0.65},
 }
 # ミント1回に2枚スクロール必要 (レアリティ一致)
 SCROLLS_PER_MINT = 2
@@ -256,7 +302,7 @@ class UserSegment:
     gst_cap_level: float = GST_DAILY_CAP_BASE  # このセグメントのGSTキャップ
     has_rainbow: float = 0.0        # 虹靴保有率 (0〜1)
     mb_drop_rate: float = 0.0       # MBドロップ確率/日 (0〜1)
-    avg_mb_level: float = 1.0       # 平均MBレベル (1〜5)
+    avg_mb_level: float = 1.0       # 平均MBレベル (1〜10)
 
     @property
     def energy_capacity(self) -> float:
@@ -275,33 +321,34 @@ class UserSegment:
 DEFAULT_SEGMENTS: List[UserSegment] = [
     # label, n_realms, snk/realm, ratio, cons_rate, gmt_r, mint_r, gst_cap, rainbow,
     #                                                                         mb_drop, avg_mb_lv
-    # MBドロップ率・平均MBレベルの根拠:
-    # - Energy 5+, Luck 7+ で MB ドロップ開始 (whitepaper)
-    # - Energy 9+ はLuckに関わらずほぼドロップ
-    # - 高Luck/Energyほど高レベルMB: Luck50+/Energy10 → Lv2-3
-    # - Luck100+/Energy15+ → Lv3-5
+    # MBドロップ率・平均MBレベルの根拠 (stepn-market.guide, STEPNstatsデータ):
+    # - Lv1-2: 低E/低Luckでもドロップ (2E+でLv1出る)
+    # - Lv3: 5E+, Luck15+ | Lv4: 5E+, Luck30+ | Lv5: 8E+, Luck60+
+    # - Lv6: 12E+, Luck100+ | Lv7-8: 20E+, Luck200-400+ | Lv9-10: 20E+, Luck500+
+    # 現実的には大半のプレイヤーがLv1-4。Lv5+はLuck特化ビルドのみ。
     # --- 1レルム ---
-    UserSegment("1R/2E カジュアル",     1, 1,  0.25, 1.00, 0.00, 0.000, 300, 0.000, 0.20, 1.0),
-    #   2E: Luck低いと出ない。出てもLv1 (空多い)
-    UserSegment("1R/4E ライト",         1, 3,  0.22, 0.95, 0.01, 0.002, 300, 0.000, 0.40, 1.2),
-    #   4E: Luck16+必要。出ればLv1中心
-    UserSegment("1R/9E ミドル",         1, 9,  0.18, 0.85, 0.03, 0.005, 300, 0.000, 0.65, 1.5),
-    #   9E: Luckに関わらずほぼドロップ。Luck振りでLv2も出る
-    UserSegment("1R/12E ヘビー",        1, 15, 0.08, 0.75, 0.08, 0.008, 600, 0.001, 0.75, 2.0),
-    #   12E: 安定ドロップ。Luck振りでLv2中心
-    UserSegment("1R/20E ガチ勢",        1, 30, 0.04, 0.60, 0.15, 0.010, 900, 0.003, 0.85, 2.5),
-    #   20E: 高Luck。Lv2-3
+    UserSegment("1R/2E カジュアル",     1, 1,  0.25, 1.00, 0.00, 0.000, 300, 0.000, 0.30, 1.0),
+    #   2E: Luck低い。Lv1中心 (空が多い、損益マイナス)
+    UserSegment("1R/4E ライト",         1, 3,  0.22, 0.95, 0.01, 0.002, 300, 0.000, 0.50, 1.5),
+    #   4E: Luck15+で Lv1-2中心。界王拳で5E可能
+    UserSegment("1R/9E ミドル",         1, 9,  0.18, 0.85, 0.03, 0.005, 300, 0.000, 0.75, 2.5),
+    #   9E: ほぼ毎日ドロップ。Luck30+でLv3-4狙い
+    UserSegment("1R/12E ヘビー",        1, 15, 0.08, 0.75, 0.08, 0.008, 600, 0.001, 0.85, 3.5),
+    #   12E: Luck100+でLv4-5。Luck特化ならLv6も
+    UserSegment("1R/20E ガチ勢",        1, 30, 0.04, 0.60, 0.15, 0.010, 900, 0.003, 0.90, 5.0),
+    #   20E: Luck200+でLv5-6。超Luck振りでLv7も
     # --- 2レルム ---
-    UserSegment("2R/8E サブ持ち",       2, 3,  0.06, 0.80, 0.02, 0.003, 300, 0.000, 0.55, 1.3),
-    UserSegment("2R/18E 中級マルチ",    2, 9,  0.05, 0.65, 0.05, 0.006, 600, 0.002, 0.70, 1.8),
-    UserSegment("2R/24E 上級マルチ",    2, 15, 0.03, 0.50, 0.12, 0.008, 900, 0.006, 0.80, 2.3),
-    UserSegment("2R/40E ガチマルチ",    2, 30, 0.02, 0.40, 0.20, 0.010, 1500, 0.013, 0.90, 3.0),
+    UserSegment("2R/8E サブ持ち",       2, 3,  0.06, 0.80, 0.02, 0.003, 300, 0.000, 0.60, 2.0),
+    UserSegment("2R/18E 中級マルチ",    2, 9,  0.05, 0.65, 0.05, 0.006, 600, 0.002, 0.80, 3.5),
+    UserSegment("2R/24E 上級マルチ",    2, 15, 0.03, 0.50, 0.12, 0.008, 900, 0.006, 0.85, 4.5),
+    UserSegment("2R/40E ガチマルチ",    2, 30, 0.02, 0.40, 0.20, 0.010, 1500, 0.013, 0.92, 6.0),
     # --- 3レルム（ホエール） ---
-    UserSegment("3R/27E トリプル中",    3, 9,  0.03, 0.50, 0.10, 0.005, 900, 0.006, 0.75, 2.0),
-    UserSegment("3R/36E トリプル上",    3, 15, 0.02, 0.45, 0.18, 0.008, 1500, 0.013, 0.85, 2.8),
-    UserSegment("3R/60E MAX",           3, 30, 0.02, 0.67, 0.25, 0.012, 2300, 0.025, 0.95, 3.5),
+    UserSegment("3R/27E トリプル中",    3, 9,  0.03, 0.50, 0.10, 0.005, 900, 0.006, 0.80, 4.0),
+    UserSegment("3R/36E トリプル上",    3, 15, 0.02, 0.45, 0.18, 0.008, 1500, 0.013, 0.90, 5.5),
+    UserSegment("3R/60E MAX",           3, 30, 0.02, 0.67, 0.25, 0.012, 2300, 0.025, 0.95, 7.0),
     # MAX60E: 消化率0.67 → 60×0.67 ≈ 40E/日（≈200分）ユーザーフィードバック反映
     # 虹靴保有率0.025 → 600人中15人 ≈ 全体の約30%の虹靴がMAX60E層に集中
+    # Luck500+で Lv7-8。トップ層はLv9も出る可能性あるがコスト2699GSTで現実的に開封せず
 ]
 
 
@@ -483,7 +530,7 @@ def simulate(params: SimParams) -> pd.DataFrame:
         daily_mb_gems_created = 0.0
         daily_mb_scrolls_created = 0.0
         daily_scrolls_used = 0.0
-        mb_gems_by_level = {lv: 0.0 for lv in range(1, 5)}
+        mb_gems_by_level = {lv: 0.0 for lv in range(1, 5)}  # ジェムLv1-4
 
         realm_gst_minted_map = {r: 0.0 for r in params.realms}
         realm_gst_burned_map = {r: 0.0 for r in params.realms}
@@ -562,9 +609,12 @@ def simulate(params: SimParams) -> pd.DataFrame:
             # --- ミステリーボックス ---
             mb_receivers = seg_dau * seg.mb_drop_rate
             if mb_receivers > 0.01:
-                mb_lv = min(int(round(seg.avg_mb_level)), 5)
+                mb_lv = min(int(round(seg.avg_mb_level)), 10)
                 mb_lv = max(1, mb_lv)
                 # 開封コスト (GSTバーン)
+                # 注: 高レベルMB(Lv6+)は開封コストが非常に高いため、
+                # 実際にはLv6+を開封せず放置or売却するプレイヤーも多い。
+                # シミュレーションでは全員開封する前提。
                 open_cost = MB_OPENING_COST_GST.get(mb_lv, 5) * mb_receivers
                 daily_mb_gst_cost += open_cost
                 total_gst_burned += open_cost
@@ -575,9 +625,11 @@ def simulate(params: SimParams) -> pd.DataFrame:
                 scrolls_from_mb = mb_receivers * avg_scrolls
                 daily_mb_gems_created += gems_from_mb
                 daily_mb_scrolls_created += scrolls_from_mb
-                # ジェムをレベル別に振り分け (MB_GEM_LEVEL_PROB)
-                for gem_lv, prob in MB_GEM_LEVEL_PROB.items():
-                    mb_gems_by_level[gem_lv] += gems_from_mb * prob
+                # ジェムをMBレベル別のジェムレベル確率で振り分け
+                gem_probs = MB_GEM_LEVEL_PROB.get(mb_lv, {1: 1.0})
+                for gem_lv, prob in gem_probs.items():
+                    if prob > 0:
+                        mb_gems_by_level[gem_lv] = mb_gems_by_level.get(gem_lv, 0) + gems_from_mb * prob
                 # スクロールをレアリティ別に在庫追加
                 scroll_rarity_dist = MB_SCROLL_RARITY.get(mb_lv, {"Common": 1.0})
                 for sr, sp in scroll_rarity_dist.items():
@@ -935,11 +987,15 @@ DATA_SOURCES = {
         "note": "オンチェーンデータ（取引量、ユーザー数、GMT流入出）",
     },
     "mystery_box": {
-        "source": "STEPN Whitepaper - Mystery Box System",
+        "source": "STEPN Whitepaper + コミュニティデータ集約",
         "url": "https://whitepaper.stepn.com/earning-module/mystery-box-system",
-        "note": "MB10レベル。Luck×Energyで品質決定。開封コストLv1=5GST〜Lv10=100GST。"
-                "ジェムドロップ確率: Lv1 35%, Lv2 50%, Lv3 14.5%, Lv4 0.5%。"
-                "ドロップ条件: Energy5+/Luck7+で発生、Energy9+はLuck不問でほぼ確定",
+        "note": "MB10レベル。Luck×Energyで品質決定。"
+                "開封ベースコスト: Lv1=5GST, Lv2=7, Lv3=10, Lv4=35, Lv5=100, "
+                "Lv6=255, Lv7=523, Lv8=1024, Lv9=1818, Lv10=2699GST。"
+                "待機時間: Lv1=2日〜Lv10=18日。"
+                "ジェム: Lv5+でLv2ジェム確定、Lv9+でLv3ジェム確定。"
+                "出典: 黒ブタ(blackpigtail.com), パレゾウ(@parezoparezo), "
+                "Otty(@OttySTEPNer1), stepn-market.guide",
     },
     "mint_scroll": {
         "source": "STEPN Whitepaper - Minting Scrolls",

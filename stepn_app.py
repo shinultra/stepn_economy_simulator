@@ -23,6 +23,7 @@ from stepn_engine import (
     ENHANCE_RAINBOW_PROB_COMMON, ENHANCE_RAINBOW_PROB_UNCOMMON, ENHANCE_COST,
     MINT_COST, MINT_COUNT_MULTIPLIER_AVG,
     MB_OPENING_COST_GST, MB_GEM_LEVEL_PROB, MB_LOOT_TABLE, MB_SCROLL_RARITY,
+    MB_WAIT_DAYS, MB_ENERGY_LUCK_REQ,
     SCROLLS_PER_MINT,
     GEM_TYPES, GEM_ATTRIBUTE_BONUS, GEM_UPGRADE_COST, GEM_UPGRADE_SUCCESS_RATE,
     GEM_FLOOR_PRICE_GMT, GEM_LEVEL_DISTRIBUTION,
@@ -843,8 +844,8 @@ with tab_sneakers:
 # ============================================================
 with tab_mb:
     st.subheader("📦 ミステリーボックス & Mint Scroll 経済")
-    st.caption("📊 出典: whitepaper.stepn.com/earning-module/mystery-box-system, "
-               "コミュニティデータ集約")
+    st.caption("📊 出典: STEPN Whitepaper, stepn-market.guide, "
+               "黒ブタ(blackpigtail.com), パレゾウ(@parezoparezo), Otty(@OttySTEPNer1)")
 
     # --- MB日次開封数・GSTコスト ---
     col_mb1, col_mb2 = st.columns(2)
@@ -936,22 +937,44 @@ with tab_mb:
     with col_mb6:
         # MB仕様テーブル
         st.markdown("#### MBレベル別ルートテーブル")
+        mb_rarity_names = {
+            1: "Common A", 2: "Common B", 3: "Uncommon A", 4: "Uncommon B",
+            5: "Rare A", 6: "Rare B", 7: "Epic A", 8: "Epic B",
+            9: "Legendary A", 10: "Legendary B",
+        }
         mb_spec_rows = []
-        for lv in range(1, 6):
+        for lv in range(1, 11):
             avg_gems, avg_scrolls = MB_LOOT_TABLE.get(lv, (0, 0))
             open_cost = MB_OPENING_COST_GST.get(lv, 5)
+            wait = MB_WAIT_DAYS.get(lv, 2)
+            req = MB_ENERGY_LUCK_REQ.get(lv, (0, 0))
             mb_spec_rows.append({
-                "MBレベル": lv,
-                "開封コスト(GST)": open_cost,
-                "平均ジェム数": avg_gems,
-                "平均スクロール数": avg_scrolls,
+                "Lv": lv,
+                "レアリティ": mb_rarity_names.get(lv, ""),
+                "開封GST": f"{open_cost:,}",
+                "待機日数": wait,
+                "必要E": f"{req[0]}+",
+                "必要Luck": f"{req[1]}+",
+                "平均Gem": avg_gems,
+                "平均Scroll": avg_scrolls,
             })
         st.dataframe(pd.DataFrame(mb_spec_rows), use_container_width=True, hide_index=True)
+        st.caption("出典: STEPN Whitepaper, 黒ブタ(@blackpigtail), "
+                   "パレゾウ(@parezoparezo), stepn-market.guide")
 
-        st.markdown("#### MB内ジェムレベル分布")
-        gem_prob_rows = [{"ジェムLv": lv, "確率": f"{prob*100:.1f}%"}
-                         for lv, prob in MB_GEM_LEVEL_PROB.items()]
-        st.dataframe(pd.DataFrame(gem_prob_rows), use_container_width=True, hide_index=True)
+        st.markdown("#### MBレベル別ジェムドロップ確率")
+        gem_dist_rows = []
+        for mb_lv in range(1, 11):
+            probs = MB_GEM_LEVEL_PROB.get(mb_lv, {})
+            gem_dist_rows.append({
+                "MBLv": mb_lv,
+                "Gem Lv1": f"{probs.get(1,0)*100:.0f}%",
+                "Gem Lv2": f"{probs.get(2,0)*100:.0f}%",
+                "Gem Lv3": f"{probs.get(3,0)*100:.0f}%",
+                "Gem Lv4": f"{probs.get(4,0)*100:.0f}%",
+            })
+        st.dataframe(pd.DataFrame(gem_dist_rows), use_container_width=True, hide_index=True)
+        st.caption("Lv5+: Lv2ジェム確定 / Lv9+: Lv3ジェム確定")
 
     # --- サマリーメトリクス ---
     st.divider()
